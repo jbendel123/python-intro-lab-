@@ -7,9 +7,9 @@ number_of_dots = 6
 symbol_size = (size_of_board / 3 - size_of_board / 8) / 2
 symbol_thickness = 50
 dot_color = '#1F2232' 
-player1_color = '#A27E6F'
+player1_color = '#960200'
 player1_color_light = '#E7EBC5'
-player2_color = '#3E505B'
+player2_color = '#FFD046'
 player2_color_light = '#9B9987'
 Green_color = '#1F2232'
 
@@ -59,8 +59,47 @@ edge_width = distance_between_dots*.10
 
   #Functions
 
+def shade_box(box):
+  start_x = 50 + (((box[0][0] -1) //2)  * 100) + edge_width/2
+  start_y = 50 + (((box[3][1] -1) //2)  * 100) + edge_width/2
+  end_x = start_x + 100 - edge_width
+  end_y = start_y + 100 - edge_width
+
+  if player_turn == 1:
+      color = player1_color_light
+  else:
+      color = player2_color_light
+
+  canvas.create_rectangle(start_x, start_y, end_x, end_y, fill=color, outline='')
+
+
+def check_completes_box(pos):
+  completing_boxes = 0 
+  for box in boxes:
+    if(pos in box):
+      line_found_count = 0
+      for line in box:
+        if(line in marked_lines):
+          line_found_count += 1 
+      if(line_found_count == 4):
+        shade_box(pos)
+        completing_boxes += 1
+  return completing_boxes 
+               
+    
+    # set line_found_count = 0 
+    # loop through each line, and find out if it is marked 
+    # if line_found_count == 4: 
+      #Then shape the box, and add one to the completing boxes count.
+      #  return completing boxes 
+
+
 def isEven(n): 
-    return n % 2 == 0
+  return n % 2 == 0
+
+
+boxes_completed = check_completes_box
+  
 
 
 def get_logical_position(x, y):
@@ -71,7 +110,7 @@ def get_logical_position(x, y):
   direction = ""
   if(isEven(xlog) == False and isEven(ylog) == True):
     direction = "row"
-    pos[xlog, ylog]
+    pos=[xlog, ylog]
     #(even, odd)
   elif(isEven(xlog) == True and isEven(ylog) == 
 False):
@@ -89,15 +128,71 @@ False):
 #     canvas.create_line(x, y, fill = player1_color)
 # elif player_turn == 2:
 #     canvas.create_line(x, y, fill = player2_color)
-
+write_points = "" 
+write_turn = ""
 def handle_click(e):
+  global player1_points
+  global player2_points
+  global player_turn 
+  global write_points
+  global write_turn
   pos, direction = get_logical_position(e.x, e.y)
-  print("someone clicked", e.x, e.y)
-  mark_line(pos, direction)
+  if direction == '':
+    return
+  if(not pos in marked_lines):
+    mark_line(pos, direction)
+    marked_lines.append(pos)
+  else:
+    return
+  boxes_completed = check_completes_box(pos)
+  print(boxes_completed)
+  if boxes_completed > 0:
+    if(player_turn == 1):
+      player1_points = player1_points + boxes_completed
+    else:
+      player2_points = player2_points + boxes_completed
+    canvas.delete(write_points)
+    write_points = canvas.create_text(550,20,text="P1: " + str(player1_points) + " | P2: " + str(player2_points))
+    #write the points at the top of the page 
+  else:
+    if player_turn == 1:
+      player_turn = 2
+      canvas.delete(write_turn)
+      write_turn = canvas.create_text(60,20, text="Player 2's Turn", fill=player2_color)
+    else: 
+      player_turn = 1
+      canvas.delete(write_turn)
+      write_turn = canvas.create_text(60,20, text="Player 1's Turn", fill=player1_color)
+
+  if(len(marked_lines) == 60):
+    canvas.delete(write_turn)
+    winner_string = "It's a Tie!"
+    if(player1_points>player2_points):
+      # player 1 wins 
+      winner_string = "Player 1 Wins!"
+      color = player1_color
+    elif(player2_points > player1_points):
+      winner_string =  "Player 2 Wins!"
+      color = player2_color 
+    canvas.create_text(250,20, text=winner_string, fill = color)
     
+
+def check_completes_box(pos):
+  completing_boxes = 0
+  for box in boxes:
+    if pos in box:
+        line_found_count=0
+        for line in box:
+          if line in marked_lines:
+            line_found_count += 1
+        if(line_found_count == 4):
+          shade_box(box)
+          completing_boxes += 1 
+  return completing_boxes
+               
 def mark_line(pos, direction):
-  print(pos, direction)
-  return
+  # print(pos, direction)
+  #return
   if direction == "row":
   #50,50,150,5 0
     r = int((pos[0] -1) //2)
@@ -107,13 +202,12 @@ def mark_line(pos, direction):
     start_y = 50 + c * 100
     end_y = start_y
   elif direction == "col":  
-    c = int((pos[1] -1 // 2))
+    c = int((pos[1] -1) // 2)
     r = int(pos[0] // 2)
     start_y = 50 + c * 100
     end_y = start_y + 100
     start_x = 50 + r * 100
     end_x = start_x 
-    
     
   if player_turn == 1:
     color = player1_color
