@@ -1,3 +1,4 @@
+'''
 grocery = (["milk","coffee","bread","eggs"])
 print(grocery)
 
@@ -9,5 +10,6 @@ print(grocery[0])
 del grocery[4]
 
 print(grocery) 
+'''
 
 

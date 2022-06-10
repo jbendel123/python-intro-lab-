@@ -32,7 +32,7 @@ Number.sort(reverse=True)# sorts numbers in reverse
 print(Number)
 
 
-print(Number.count(9))                                 1
+print(Number.count(9))                                 
 
 Number.remove("4")# removes an index by string 
 print(Number)
